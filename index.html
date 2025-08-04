@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trakito - Early Access</title>
+    <title>ilusoft.fun - Early Access</title>
     <style>
       * {
         margin: 0;
@@ -120,7 +120,16 @@
       }
 
       .checkbox-container input[type="checkbox"] {
-        display: none;
+        position: absolute;
+        opacity: 0;
+        width: 20px;
+        height: 20px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       .checkmark {
@@ -163,6 +172,17 @@
 
       .privacy-link:hover {
         text-decoration: underline;
+      }
+
+      .checkbox-error {
+        color: #721c24;
+        font-size: 0.8rem;
+        margin-top: 5px;
+        display: none;
+      }
+
+      .checkbox-container.error .checkmark {
+        border-color: #721c24;
       }
 
       .message {
@@ -233,7 +253,7 @@
   <body>
     <div class="container">
       <div class="logo">ilusoft.fun</div>
-      <div class="tagline">Get early access to the future of productivity</div>
+      <div class="tagline">Get early access to the future apps</div>
 
       <div class="form-container">
         <h2>Join the Beta</h2>
@@ -253,11 +273,16 @@
           </div>
           <div class="privacy-consent">
             <label class="checkbox-container">
-              <input type="checkbox" id="privacyConsent" required />
+              <input
+                type="checkbox"
+                id="privacyConsent"
+                name="privacyConsent"
+                required
+              />
               <span class="checkmark"></span>
               <span class="consent-text">
                 I agree to the processing of my personal data for the purpose of
-                receiving information about early access to the Trakito
+                receiving information about early access to the ilusoft.fun
                 application.
                 <a
                   href="privacy-policy-early-access/"
@@ -267,6 +292,19 @@
                 >
               </span>
             </label>
+          </div>
+          <div
+            id="checkbox-error"
+            class="checkbox-error"
+            style="
+              display: none;
+              color: #721c24;
+              font-size: 0.8rem;
+              margin-top: 8px;
+              text-align: left;
+            "
+          >
+            Please accept the privacy policy to continue.
           </div>
           <button type="submit" class="submit-btn" id="submitBtn">
             Get Early Access
@@ -290,15 +328,57 @@
       </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAvubL-46-uKPlrdbQ_XL9Hnkz1jB9XHaM",
+        authDomain: "ilusoft-fun.firebaseapp.com",
+        projectId: "ilusoft-fun",
+        storageBucket: "ilusoft-fun.firebasestorage.app",
+        messagingSenderId: "566043930272",
+        appId: "1:566043930272:web:28ec361c9e29c6762ee3c5",
+        measurementId: "G-M1J3DJP50P",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Add checkbox validation on change
+      document
+        .getElementById("privacyConsent")
+        .addEventListener("change", function () {
+          const checkboxContainer = document.querySelector(
+            ".checkbox-container"
+          );
+          const checkboxError = document.getElementById("checkbox-error");
+
+          if (this.checked) {
+            checkboxContainer.classList.remove("error");
+            checkboxError.style.display = "none";
+          } else {
+            checkboxContainer.classList.add("error");
+            checkboxError.style.display = "block";
+          }
+        });
+
       document
         .getElementById("signupForm")
-        .addEventListener("submit", function (e) {
+        .addEventListener("submit", async function (e) {
           e.preventDefault();
 
           const email = document.getElementById("emailInput").value;
           const submitBtn = document.getElementById("submitBtn");
           const messageDiv = document.getElementById("message");
+          const privacyConsent = document.getElementById("privacyConsent");
+          const checkboxContainer = document.querySelector(
+            ".checkbox-container"
+          );
+          const checkboxError = document.getElementById("checkbox-error");
 
           // Basic email validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -307,10 +387,10 @@
             return;
           }
 
-          // Check privacy consent
-          const privacyConsent =
-            document.getElementById("privacyConsent").checked;
-          if (!privacyConsent) {
+          // Check privacy consent with visual feedback
+          if (!privacyConsent.checked) {
+            checkboxContainer.classList.add("error");
+            checkboxError.style.display = "block";
             showMessage(
               "Please accept the privacy policy to continue.",
               "error"
@@ -322,10 +402,13 @@
           submitBtn.disabled = true;
           submitBtn.textContent = "Submitting...";
 
-          // Simulate API call (replace with actual backend integration)
-          setTimeout(() => {
-            // Here you would typically send the email to your backend
-            console.log("Email submitted:", email);
+          try {
+            // Save email to Firebase Firestore
+            await db.collection("early_access_emails").add({
+              email: email,
+              consent: privacyConsent.checked,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
 
             // Show success message
             showMessage(
@@ -337,10 +420,24 @@
             document.getElementById("emailInput").value = "";
             document.getElementById("privacyConsent").checked = false;
 
+            // Clear error states
+            const checkboxContainer = document.querySelector(
+              ".checkbox-container"
+            );
+            const checkboxError = document.getElementById("checkbox-error");
+            checkboxContainer.classList.remove("error");
+            checkboxError.style.display = "none";
+          } catch (error) {
+            console.error("Error saving email:", error);
+            showMessage(
+              "Sorry, there was an error saving your email. Please try again.",
+              "error"
+            );
+          } finally {
             // Re-enable button
             submitBtn.disabled = false;
             submitBtn.textContent = "Get Early Access";
-          }, 1500);
+          }
         });
 
       function showMessage(text, type) {

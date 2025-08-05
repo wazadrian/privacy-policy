@@ -11,6 +11,11 @@
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+        scroll-snap-type: y proximity;
+      }
+
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -80,6 +85,7 @@
         padding: 40px;
         margin-bottom: 30px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        scroll-snap-align: start;
       }
 
       .section h2 {
@@ -139,6 +145,7 @@
         font-size: 2.5rem;
         margin-bottom: 15px;
         display: block;
+        text-align: center;
       }
 
       .feature-title {
@@ -390,6 +397,13 @@
         border: 1px solid #f5c6cb;
       }
 
+      .features-grid-responsive {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+      }
+
       @media (max-width: 768px) {
         .hero {
           padding: 40px 20px;
@@ -413,6 +427,10 @@
 
         .section {
           padding: 30px 20px;
+        }
+
+        .features-grid-responsive {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -582,14 +600,7 @@
 
       <div class="section">
         <h2>📱 Key Features</h2>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-top: 30px;
-          "
-        >
+        <div class="features-grid-responsive">
           <div>
             <h3>Core Functionality:</h3>
             <ul style="list-style: none; padding: 0">

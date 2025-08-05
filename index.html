@@ -890,7 +890,7 @@
 
           try {
             // Save email to Firebase Firestore
-            await db.collection("trakito_early_access").add({
+            await db.collection("early_access_emails").add({
               email: email,
               consent: privacyConsent.checked,
               timestamp: firebase.firestore.FieldValue.serverTimestamp(),
